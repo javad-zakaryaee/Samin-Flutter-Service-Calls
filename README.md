@@ -1,16 +1,5 @@
 # http_practice
+This is a basic practice project that uses the flutter http library and spotify oauth2 api to authenticate the client with the spotify api and receive information about albums that the user searches for and the tracks that they contain
 
-A new Flutter project.
-
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Images
+<img src="https://github.com/javad-zakaryaee/Samin-Flutter-Service-Calls/blob/master/images/recording.gif" width="200" height="450">
