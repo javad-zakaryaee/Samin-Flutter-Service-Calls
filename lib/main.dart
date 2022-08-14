@@ -15,19 +15,19 @@ class MyMaterialApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       title: 'Http Practice',
       theme: ThemeData(
-          colorScheme: ColorScheme(
+          colorScheme: const ColorScheme(
               background: Colors.black,
               onSurface: Color(0xff3cdb69),
               onBackground: Colors.amber,
               brightness: Brightness.dark,
-              primary: Color(0xff3cdb69),
+              primary: Color.fromARGB(242, 60, 219, 105),
               error: Colors.red,
               secondary: Colors.blue,
               surface: Colors.deepPurple,
-              onPrimary: Colors.brown,
+              onPrimary: Colors.white,
               onError: Colors.white60,
               onSecondary: Colors.lightBlue),
-          appBarTheme: AppBarTheme(
+          appBarTheme: const AppBarTheme(
               color: Color(0xff121212),
               titleTextStyle: TextStyle(color: Colors.white, fontSize: 16))),
       home: HomePage(),
@@ -55,11 +55,12 @@ class _HomePageState extends State<HomePage> {
 
   showLoaderDialog(BuildContext context) {
     AlertDialog alert = AlertDialog(
-      content: new Row(
+      content: Row(
         children: [
-          CircularProgressIndicator(),
+          const CircularProgressIndicator(),
           Container(
-              margin: EdgeInsets.only(left: 7), child: Text(" Loading...")),
+              margin: const EdgeInsets.only(left: 7),
+              child: const Text(" Loading...")),
         ],
       ),
     );
@@ -80,56 +81,55 @@ class _HomePageState extends State<HomePage> {
         padding: const EdgeInsets.all(10.0),
         child: Column(
           children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Form(
-                    key: formKey,
-                    child: TextFormField(
-                      validator: (value) => value == null || value.isEmpty
-                          ? 'Can\'t be empty'
-                          : null,
-                      decoration: InputDecoration(
-                          border: UnderlineInputBorder(),
-                          labelText: 'Enter album keyword'),
-                      controller: albumController,
-                    ),
-                  ),
+            Form(
+              key: formKey,
+              child: Container(
+                margin: EdgeInsets.only(bottom: 10, left: 5, right: 5),
+                child: TextFormField(
+                  validator: (value) =>
+                      value == null || value.isEmpty ? 'Can\'t be empty' : null,
+                  decoration: const InputDecoration(
+                      border: UnderlineInputBorder(),
+                      labelText: 'Enter album keyword'),
+                  controller: albumController,
                 ),
-                ElevatedButton(
-                    style: ButtonStyle(
-                        shape: MaterialStateProperty.all(RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(20)))),
-                    onPressed: () {
-                      if (formKey.currentState!.validate()) {
-                        showLoaderDialog(context);
-                        getAcessToken().then((token) async {
-                          access_token = token;
-                          albumList = await getSearchResults(
-                                  token, albumController.text)
-                              .then((value) {
-                            setState(() {
-                              isAlbumListLoaded = true;
-                              Navigator.pop(context);
-                            });
-                            return value;
-                          });
-                          setTextData('Token received');
-                        }).onError((error, stackTrace) {
+              ),
+            ),
+            Container(
+              margin: EdgeInsets.only(bottom: 10),
+              child: ElevatedButton(
+                  style: ButtonStyle(
+                      shape: MaterialStateProperty.all(RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)))),
+                  onPressed: () {
+                    if (formKey.currentState!.validate()) {
+                      showLoaderDialog(context);
+                      getAcessToken().then((token) async {
+                        access_token = token;
+                        albumList =
+                            await getSearchResults(token, albumController.text)
+                                .then((value) {
                           setState(() {
-                            isAlbumListLoaded = false;
+                            isAlbumListLoaded = true;
+                            Navigator.pop(context);
                           });
-                          Navigator.pop(context);
-                          setTextData(error.toString());
+                          return value;
                         });
-                      } else {
+                        setTextData('Token received');
+                      }).onError((error, stackTrace) {
                         setState(() {
                           isAlbumListLoaded = false;
                         });
-                      }
-                    },
-                    child: const Text('Get album data')),
-              ],
+                        Navigator.pop(context);
+                        setTextData(error.toString());
+                      });
+                    } else {
+                      setState(() {
+                        isAlbumListLoaded = false;
+                      });
+                    }
+                  },
+                  child: const Text('Search for album')),
             ),
             isAlbumListLoaded ? DetailedList(albums: albumList) : Text(textData)
           ],

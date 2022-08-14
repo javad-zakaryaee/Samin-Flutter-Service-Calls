@@ -31,7 +31,7 @@ class _DetailedListState extends State<DetailedList> {
                             loadedAlbum: widget.albums[index]))));
               },
               child: Container(
-                color: Color(0xff3cdb69),
+                color: Color.fromARGB(198, 60, 219, 105),
                 height: 100,
                 margin: EdgeInsets.fromLTRB(10, 20, 10, 0),
                 child: Row(children: [
@@ -41,9 +41,11 @@ class _DetailedListState extends State<DetailedList> {
                     child: Padding(
                       padding: const EdgeInsets.only(left: 10),
                       child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
                           Text(
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold),
                             widget.albums[index].name,
                             overflow: TextOverflow.ellipsis,
                           ),
