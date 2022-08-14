@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
-import './album.dart';
+import 'package:http_practice/widgets/detailedList.dart';
+import './routes/tracklistRoute.dart';
+import './models/album.dart';
 import './spotifyAuth.dart';
 
-void main() => runApp(MyMaterialApp());
+void main() => runApp(const MyMaterialApp());
 
 class MyMaterialApp extends StatelessWidget {
   const MyMaterialApp({Key? key}) : super(key: key);
@@ -10,16 +12,24 @@ class MyMaterialApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      debugShowCheckedModeBanner: false,
       title: 'Http Practice',
       theme: ThemeData(
-        textTheme: Theme.of(context).textTheme.apply(
-              bodyColor: Colors.white, //<-- SEE HERE
-              displayColor: Colors.white,
-            ),
-        appBarTheme:
-            AppBarTheme(titleTextStyle: TextStyle(color: Colors.white)),
-        primarySwatch: Colors.cyan,
-      ),
+          colorScheme: ColorScheme(
+              background: Colors.black,
+              onSurface: Color(0xff3cdb69),
+              onBackground: Colors.amber,
+              brightness: Brightness.dark,
+              primary: Color(0xff3cdb69),
+              error: Colors.red,
+              secondary: Colors.blue,
+              surface: Colors.deepPurple,
+              onPrimary: Colors.brown,
+              onError: Colors.white60,
+              onSecondary: Colors.lightBlue),
+          appBarTheme: AppBarTheme(
+              color: Color(0xff121212),
+              titleTextStyle: TextStyle(color: Colors.white, fontSize: 16))),
       home: HomePage(),
     );
   }
@@ -32,95 +42,98 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   var textData = '';
-  bool isAlbumLoaded = false;
-  late Album loadedAlbum;
+  late String access_token;
+  bool isAlbumListLoaded = false;
+  final formKey = GlobalKey<FormState>();
+  final albumController = TextEditingController();
+  late List<Album> albumList;
   void setTextData(String input) {
     setState(() {
       textData = input;
     });
   }
 
+  showLoaderDialog(BuildContext context) {
+    AlertDialog alert = AlertDialog(
+      content: new Row(
+        children: [
+          CircularProgressIndicator(),
+          Container(
+              margin: EdgeInsets.only(left: 7), child: Text(" Loading...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context,
+      builder: (BuildContext context) {
+        return alert;
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('JSON over HTTP'), centerTitle: true),
-      body: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Visibility(
-            visible: !isAlbumLoaded,
-            child: Column(
+      appBar: AppBar(title: const Text('JSON over HTTP'), centerTitle: true),
+      body: Padding(
+        padding: const EdgeInsets.all(10.0),
+        child: Column(
+          children: [
+            Row(
               children: [
+                Expanded(
+                  child: Form(
+                    key: formKey,
+                    child: TextFormField(
+                      validator: (value) => value == null || value.isEmpty
+                          ? 'Can\'t be empty'
+                          : null,
+                      decoration: InputDecoration(
+                          border: UnderlineInputBorder(),
+                          labelText: 'Enter album keyword'),
+                      controller: albumController,
+                    ),
+                  ),
+                ),
                 ElevatedButton(
                     style: ButtonStyle(
                         shape: MaterialStateProperty.all(RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(20)))),
                     onPressed: () {
-                      getAcessToken().then((accessToken) {
-                        getAlbumData(accessToken).then((value) {
-                          loadedAlbum = value;
-                          setState(() {
-                            isAlbumLoaded = true;
+                      if (formKey.currentState!.validate()) {
+                        showLoaderDialog(context);
+                        getAcessToken().then((token) async {
+                          access_token = token;
+                          albumList = await getSearchResults(
+                                  token, albumController.text)
+                              .then((value) {
+                            setState(() {
+                              isAlbumListLoaded = true;
+                              Navigator.pop(context);
+                            });
+                            return value;
                           });
+                          setTextData('Token received');
+                        }).onError((error, stackTrace) {
+                          setState(() {
+                            isAlbumListLoaded = false;
+                          });
+                          Navigator.pop(context);
+                          setTextData(error.toString());
                         });
-                      });
+                      } else {
+                        setState(() {
+                          isAlbumListLoaded = false;
+                        });
+                      }
                     },
-                    child: Text('Get album data')),
-                Text(textData)
+                    child: const Text('Get album data')),
               ],
             ),
-          ),
-          if (isAlbumLoaded)
-            Card(
-              shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(30)),
-              color: Theme.of(context).primaryColor,
-              elevation: 10,
-              child: SizedBox(
-                  height: 400,
-                  child: Padding(
-                    padding: const EdgeInsets.all(15),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.spaceAround,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        CircleAvatar(
-                          radius: 100,
-                          child: Image.network(
-                            loadedAlbum.imageURL,
-                            fit: BoxFit.fill,
-                            loadingBuilder: (BuildContext context, Widget child,
-                                ImageChunkEvent? loadingProgress) {
-                              if (loadingProgress == null) {
-                                return child;
-                              }
-                              return Center(
-                                child: CircularProgressIndicator(
-                                  value: loadingProgress.expectedTotalBytes !=
-                                          null
-                                      ? loadingProgress.cumulativeBytesLoaded /
-                                          loadingProgress.expectedTotalBytes!
-                                      : null,
-                                ),
-                              );
-                            },
-                          ),
-                        ),
-                        Column(
-                          children: [
-                            Text(
-                              loadedAlbum.name,
-                              textAlign: TextAlign.center,
-                            ),
-                            Text(loadedAlbum.release_year)
-                          ],
-                        )
-                      ],
-                    ),
-                  )),
-            )
-        ],
+            isAlbumListLoaded ? DetailedList(albums: albumList) : Text(textData)
+          ],
+        ),
       ),
     );
   }

@@ -1,38 +1,69 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
-import './album.dart';
+import 'models/album.dart';
 
 Future<String> getAcessToken() async {
-  Map grant_type = {'grant_type': 'client_credentials'};
+  Map grantType = {'grant_type': 'client_credentials'};
   Map<String, String> requestHeaders = {
     'Content-type': 'application/x-www-form-urlencoded',
     'Authorization':
         'Basic NGFhYWVjZjk2MjY5NDJkZWIyZTkzOGQ2OGMzYWVkNWE6OWFkMmEwZWVhNTkxNDlkNmI2OGFjODU4MzBkYzdiODU='
   };
   Map<String, dynamic> responseBody = {};
-  var access_token;
+  var accessToken;
   await http
       .post(Uri.parse('https://accounts.spotify.com/api/token'),
-          body: grant_type, headers: requestHeaders)
+          body: grantType, headers: requestHeaders)
       .then((response) {
     if (response.statusCode == 200) {
       responseBody = jsonDecode(response.body);
-      access_token = responseBody['access_token'];
+      accessToken = responseBody['access_token'];
+    } else {
+      Future.error(Exception('Auth Error : ${response.statusCode}'));
     }
   });
-  return access_token;
+  return accessToken;
 }
 
-Future<Album> getAlbumData(String accessToken) async {
-  Album? album;
+Future<List<Album>> getSearchResults(String accessToken, String query) async {
+  List<Album> queryResult = [];
+  List<String> albumIDs;
+  var responseBody;
+  query = Uri.encodeFull(query);
+  print(query);
   await http.get(
-      Uri.parse('https://api.spotify.com/v1/albums/2WT1pbYjLJciAR26yMebkH'),
+      Uri.parse(
+          'https://api.spotify.com/v1/search?q=$query&type=album&limit=10'),
+      headers: {
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer $accessToken'
+      }).then((response) async {
+    if (response.statusCode == 200) {
+      responseBody = jsonDecode(response.body);
+      albumIDs = List.generate(responseBody['albums']['items'].length, (index) {
+        return responseBody['albums']['items'][index]['id'];
+      });
+      for (String i in albumIDs) {
+        var album = await getAlbumData(accessToken, i);
+        queryResult.add(album);
+      }
+    } else {
+      return Future.error(response.statusCode);
+    }
+  });
+  return queryResult;
+}
+
+Future<Album> getAlbumData(String accessToken, String albumID) async {
+  Album? album;
+  await http.get(Uri.parse('https://api.spotify.com/v1/albums/$albumID'),
       headers: {'Authorization': 'Bearer $accessToken}'}).then((response) {
     if (response.statusCode == 200) {
       album = Album.fromJson(response.body);
       //return album;
     } else {
-      return Future.error(Exception(response.statusCode));
+      return Future.error(Exception('Album error : ${response.statusCode}'));
     }
   });
   return Future.value(album);
