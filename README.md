@@ -3,4 +3,4 @@ This is a basic practice project that uses the flutter http library and spotify 
 
 ## Images
 sample screen recording:
-<img src="https://github.com/javad-zakaryaee/Samin-Flutter-Service-Calls/blob/master/images/recording.gif" width="200" height="450">
+<img alt="loading gif" src="https://github.com/javad-zakaryaee/Samin-Flutter-Service-Calls/blob/master/images/recording.gif" width="200" height="450">
