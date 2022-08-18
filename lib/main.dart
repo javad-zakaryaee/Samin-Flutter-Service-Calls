@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+
 import 'package:http_practice/widgets/detailedList.dart';
-import './routes/tracklistRoute.dart';
+
+import './spotifyAuth/spotifyAuth.dart';
 import './models/album.dart';
-import './spotifyAuth.dart';
+import './routes/tracklistRoute.dart';
 
 void main() => runApp(const MyMaterialApp());
 
@@ -106,6 +108,7 @@ class _HomePageState extends State<HomePage> {
                       showLoaderDialog(context);
                       getAcessToken().then((token) async {
                         access_token = token;
+                        print('token received');
                         albumList =
                             await getSearchResults(token, albumController.text)
                                 .then((value) {

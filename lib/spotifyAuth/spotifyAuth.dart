@@ -1,13 +1,15 @@
-import 'package:http/http.dart' as http;
 import 'dart:convert';
-import 'models/album.dart';
+
+import 'package:http/http.dart' as http;
+
+import '../models/album.dart';
+import 'token.dart';
 
 Future<String> getAcessToken() async {
   Map grantType = {'grant_type': 'client_credentials'};
   Map<String, String> requestHeaders = {
     'Content-type': 'application/x-www-form-urlencoded',
-    'Authorization':
-        'Basic NGFhYWVjZjk2MjY5NDJkZWIyZTkzOGQ2OGMzYWVkNWE6OWFkMmEwZWVhNTkxNDlkNmI2OGFjODU4MzBkYzdiODU='
+    'Authorization': 'Basic ${token}'
   };
   Map<String, dynamic> responseBody = {};
   var accessToken;
